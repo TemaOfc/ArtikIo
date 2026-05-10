@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ArtikIO - Список лобби</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="lobby">
+            <h1>Список лобби</h1>
+            <button id="backBtn" class="back-btn">← Назад</button>
+
+            <div id="lobbyList" class="lobby-list">
+                <!-- Лобби будут добавлены динамически -->
+            </div>
+
+            <div id="noLobbies" class="no-lobbies" style="display: none;">
+                <p>Нет доступных лобби</p>
+                <button id="createNewBtn" class="menu-btn">Создать лобби</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        const playerName = localStorage.getItem('playerName');
+        if (!playerName) {
+            window.location.href = '/';
+        }
+
+        const socket = io();
+        const lobbyList = document.getElementById('lobbyList');
+        const noLobbies = document.getElementById('noLobbies');
+
+        document.getElementById('backBtn').addEventListener('click', () => {
+            window.location.href = '/';
+        });
+
+        document.getElementById('createNewBtn').addEventListener('click', () => {
+            window.location.href = '/create_lobby';
+        });
+
+        // Запрашиваем список лобби
+        socket.emit('get_lobby_list');
+
+        socket.on('lobby_list', (lobbies) => {
+            if (lobbies.length === 0) {
+                lobbyList.style.display = 'none';
+                noLobbies.style.display = 'block';
+            } else {
+                lobbyList.style.display = 'block';
+                noLobbies.style.display = 'none';
+                renderLobbies(lobbies);
+            }
+        });
+
+        function renderLobbies(lobbies) {
+            lobbyList.innerHTML = '';
+
+            lobbies.forEach(lobby => {
+                const lobbyCard = document.createElement('div');
+                lobbyCard.className = 'lobby-card';
+
+                const hasPassword = lobby.password ? '🔒' : '';
+                const themeNames = getThemeNames(lobby.themes);
+
+                lobbyCard.innerHTML = `
+                    <div class="lobby-header">
+                        <h3>${hasPassword} ${lobby.room_id}</h3>
+                        <span class="player-count">${lobby.current_players}/${lobby.max_players}</span>
+                    </div>
+                    <div class="lobby-info">
+                        <div class="info-item">
+                            <span class="info-label">Время рисования:</span>
+                            <span class="info-value">${lobby.round_time}с</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Время выбора:</span>
+                            <span class="info-value">${lobby.word_choice_time}с</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Очков для победы:</span>
+                            <span class="info-value">${lobby.points_to_win}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Темы:</span>
+                            <span class="info-value">${themeNames}</span>
+                        </div>
+                    </div>
+                    <button class="join-lobby-btn" data-room-id="${lobby.room_id}" data-has-password="${lobby.password ? 'true' : 'false'}">
+                        Присоединиться
+                    </button>
+                `;
+
+                lobbyList.appendChild(lobbyCard);
+            });
+
+            // Добавляем обработчики для кнопок присоединения
+            document.querySelectorAll('.join-lobby-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const roomId = e.target.dataset.roomId;
+                    const hasPassword = e.target.dataset.hasPassword === 'true';
+
+                    if (hasPassword) {
+                        const password = prompt('Введите пароль:');
+                        if (!password) return;
+                        joinLobby(roomId, password);
+                    } else {
+                        joinLobby(roomId, null);
+                    }
+                });
+            });
+        }
+
+        function joinLobby(roomId, password) {
+            window.location.href = `/game/${roomId}?name=${encodeURIComponent(playerName)}${password ? '&password=' + encodeURIComponent(password) : ''}`;
+        }
+
+        function getThemeNames(themes) {
+            const themeMap = {
+                'general': 'Общее',
+                'animals': 'Животные',
+                'food': 'Еда',
+                'objects': 'Предметы',
+                'professions': 'Профессии',
+                'transport': 'Транспорт',
+                'nature': 'Природа',
+                'verbs': 'Глаголы'
+            };
+
+            if (themes.includes('general')) {
+                return 'Общее';
+            }
+
+            return themes.map(t => themeMap[t] || t).join(', ');
+        }
+
+        // Обновляем список каждые 3 секунды
+        setInterval(() => {
+            socket.emit('get_lobby_list');
+        }, 3000);
+    </script>
+</body>
+</html>

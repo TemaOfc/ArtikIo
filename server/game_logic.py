@@ -14,7 +14,7 @@ class Player:
         self.guess_order = None
 
 class GameRoom:
-    def __init__(self, room_id):
+    def __init__(self, room_id, settings=None):
         self.room_id = room_id
         self.players = {}
         self.current_drawer = None
@@ -25,11 +25,27 @@ class GameRoom:
         self.choosing_word = False
         self.guess_order_counter = 0
         self.canvas_data = []
-        self.canvas_snapshot = None  # Полное состояние холста в base64
+        self.canvas_snapshot = None
         self.last_snapshot_time = 0
 
+        # Настройки лобби
+        if settings:
+            self.password = settings.get('password')
+            self.max_players = settings.get('max_players', MAX_PLAYERS)
+            self.round_time = settings.get('round_time', ROUND_TIME)
+            self.word_choice_time = settings.get('word_choice_time', WORD_CHOICE_TIME)
+            self.points_to_win = settings.get('points_to_win', POINTS_TO_WIN)
+            self.themes = settings.get('themes', ['general'])
+        else:
+            self.password = None
+            self.max_players = MAX_PLAYERS
+            self.round_time = ROUND_TIME
+            self.word_choice_time = WORD_CHOICE_TIME
+            self.points_to_win = POINTS_TO_WIN
+            self.themes = ['general']
+
     def add_player(self, sid, name):
-        if len(self.players) >= MAX_PLAYERS:
+        if len(self.players) >= self.max_players:
             return False
         self.players[sid] = Player(sid, name)
         return True
@@ -79,7 +95,8 @@ class GameRoom:
         if not self.current_drawer:
             return None
 
-        self.word_choices = get_random_word_pair()
+        from shared.words import get_random_word_pair
+        self.word_choices = get_random_word_pair(self.themes)
         self.choosing_word = True
         self.round_active = False
 
@@ -165,11 +182,11 @@ class GameRoom:
             return 0
 
         elapsed = time.time() - self.round_start_time
-        return max(0, ROUND_TIME - int(elapsed))
+        return max(0, self.round_time - int(elapsed))
 
     def check_winner(self):
         for player in self.players.values():
-            if player.score >= POINTS_TO_WIN:
+            if player.score >= self.points_to_win:
                 return player
         return None
 
@@ -201,13 +218,33 @@ class GameRoom:
         # Синхронизировать каждые 2 секунды
         return time.time() - self.last_snapshot_time > 2
 
+    def get_lobby_info(self):
+        """Получить информацию о лобби для списка"""
+        return {
+            'room_id': self.room_id,
+            'password': self.password is not None,
+            'current_players': len(self.players),
+            'max_players': self.max_players,
+            'round_time': self.round_time,
+            'word_choice_time': self.word_choice_time,
+            'points_to_win': self.points_to_win,
+            'themes': self.themes,
+            'round_active': self.round_active
+        }
+
+    def verify_password(self, password):
+        """Проверить пароль лобби"""
+        if self.password is None:
+            return True
+        return self.password == password
+
 class GameManager:
     def __init__(self):
         self.rooms = {}
 
-    def create_room(self, room_id):
+    def create_room(self, room_id, settings=None):
         if room_id not in self.rooms:
-            self.rooms[room_id] = GameRoom(room_id)
+            self.rooms[room_id] = GameRoom(room_id, settings)
         return self.rooms[room_id]
 
     def get_room(self, room_id):
@@ -216,5 +253,12 @@ class GameManager:
     def delete_room(self, room_id):
         if room_id in self.rooms:
             del self.rooms[room_id]
+
+    def get_all_lobbies(self):
+        """Получить список всех лобби"""
+        lobbies = []
+        for room in self.rooms.values():
+            lobbies.append(room.get_lobby_info())
+        return lobbies
 
 game_manager = GameManager()

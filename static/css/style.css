@@ -1244,3 +1244,326 @@ body {
         padding: 3px 5px;
     }
 }
+
+/* Стили для главного меню */
+.main-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.main-menu input {
+    padding: 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.main-menu input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.menu-btn {
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.menu-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Стили для списка лобби */
+.back-btn {
+    padding: 10px 20px;
+    background: #e0e0e0;
+    color: #333;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background 0.3s;
+}
+
+.back-btn:hover {
+    background: #d0d0d0;
+}
+
+.lobby-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.lobby-card {
+    background: #f5f5f5;
+    border-radius: 10px;
+    padding: 20px;
+    border: 2px solid #e0e0e0;
+    transition: all 0.3s;
+}
+
+.lobby-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.lobby-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.lobby-header h3 {
+    font-size: 20px;
+    color: #333;
+}
+
+.player-count {
+    background: #667eea;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.lobby-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.info-label {
+    font-size: 12px;
+    color: #666;
+}
+
+.info-value {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+
+.join-lobby-btn {
+    width: 100%;
+    padding: 12px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.join-lobby-btn:hover {
+    background: #5568d3;
+}
+
+.no-lobbies {
+    text-align: center;
+    padding: 40px;
+}
+
+.no-lobbies p {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* Стили для создания лобби */
+.create-lobby-page {
+    max-width: 900px;
+}
+
+.create-lobby-content {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.settings-section {
+    flex: 1;
+}
+
+.settings-section h3 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.themes-section {
+    flex: 1;
+}
+
+.themes-section h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.theme-mode-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.theme-tab {
+    flex: 1;
+    padding: 10px;
+    background: #f5f5f5;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.theme-tab:hover {
+    background: #e8e8e8;
+}
+
+.theme-tab.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.theme-mode {
+    background: #f5f5f5;
+    border-radius: 10px;
+    padding: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.constructor-hint {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.theme-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.theme-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.theme-item:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+.theme-item input[type="radio"],
+.theme-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.theme-item span {
+    font-size: 14px;
+    color: #333;
+}
+
+.create-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.create-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Адаптивность для мобильных */
+@media screen and (max-width: 768px) {
+    .create-lobby-content {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .lobby-info {
+        grid-template-columns: 1fr;
+    }
+
+    .menu-buttons {
+        gap: 10px;
+    }
+
+    .theme-mode {
+        max-height: 300px;
+    }
+}
+

@@ -224,7 +224,37 @@ def get_theme_words(theme):
         return get_all_words()
     return WORD_THEMES.get(theme, [])
 
-def get_random_word_pair():
+def get_words_from_themes(themes):
+    """Получить слова из списка тем"""
+    if not themes:
+        return get_all_words()
+
+    # Если в списке есть "general", возвращаем все слова
+    if "general" in themes:
+        return get_all_words()
+
+    # Собираем слова из выбранных тем
+    words = []
+    for theme in themes:
+        if theme in WORD_THEMES and theme != "general":
+            words.extend(WORD_THEMES[theme])
+
+    return words if words else get_all_words()
+
+def get_random_word_pair(themes=None):
+    """Получить случайную пару слов из указанных тем"""
     import random
-    all_words = get_all_words()
-    return random.sample(all_words, 2)
+
+    if themes:
+        words = get_words_from_themes(themes)
+    else:
+        words = get_all_words()
+
+    if len(words) < 2:
+        words = get_all_words()
+
+    return random.sample(words, 2)
+
+def get_available_themes():
+    """Получить список доступных тем (без 'general')"""
+    return [theme for theme in WORD_THEMES.keys() if theme != "general"]

@@ -18,6 +18,14 @@ def open_browser():
 def index():
     return render_template('index.html')
 
+@app.route('/lobby_list')
+def lobby_list():
+    return render_template('lobby_list.html')
+
+@app.route('/create_lobby')
+def create_lobby():
+    return render_template('create_lobby.html')
+
 @app.route('/game/<room_id>')
 def game(room_id):
     return render_template('game.html', room_id=room_id)

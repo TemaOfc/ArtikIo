@@ -1,17 +1,31 @@
 class GameSocket {
-    constructor(roomId, playerName) {
+    constructor(roomId, playerName, createLobby, lobbySettings) {
         this.socket = io();
         this.roomId = roomId;
         this.playerName = playerName;
+        this.createLobby = createLobby;
+        this.lobbySettings = lobbySettings;
         this.setupSocketListeners();
     }
 
     setupSocketListeners() {
         this.socket.on('connect', () => {
             console.log('Connected to server');
+
+            const urlParams = new URLSearchParams(window.location.search);
+            let password = urlParams.get('password');
+
+            // Если создаем лобби и есть настройки с паролем, используем его
+            if (this.createLobby && this.lobbySettings && this.lobbySettings.password) {
+                password = this.lobbySettings.password;
+            }
+
             this.socket.emit('join_game', {
                 room_id: this.roomId,
-                player_name: this.playerName
+                player_name: this.playerName,
+                password: password,
+                create_lobby: this.createLobby,
+                lobby_settings: this.lobbySettings
             });
 
             // Запросить синхронизацию холста через 500мс после подключения
@@ -124,6 +138,8 @@ class GameSocket {
 
         this.socket.on('error', (data) => {
             alert(data.message);
+            // Перенаправляем обратно к списку лобби при ошибке
+            window.location.href = '/lobby_list';
         });
     }
 
@@ -286,6 +302,7 @@ function init() {
     const urlParams = new URLSearchParams(window.location.search);
     const playerName = urlParams.get('name');
     const roomId = window.location.pathname.split('/').pop();
+    const createLobby = urlParams.get('create') === 'true';
 
     if (!playerName) {
         window.location.href = '/';
@@ -294,9 +311,19 @@ function init() {
 
     document.getElementById('roomId').textContent = roomId;
 
+    // Получаем настройки лобби из localStorage если создаем новое
+    let lobbySettings = null;
+    if (createLobby) {
+        const savedSettings = localStorage.getItem('lobbySettings');
+        if (savedSettings) {
+            lobbySettings = JSON.parse(savedSettings);
+            localStorage.removeItem('lobbySettings'); // Удаляем после использования
+        }
+    }
+
     drawingCanvas = new DrawingCanvas('gameCanvas');
     chatManager = new ChatManager('chatMessages', 'chatInput', 'sendBtn');
-    gameSocket = new GameSocket(roomId, playerName);
+    gameSocket = new GameSocket(roomId, playerName, createLobby, lobbySettings);
 
     window.drawingCanvas = drawingCanvas;
     window.chatManager = chatManager;

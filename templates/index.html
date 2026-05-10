@@ -12,10 +12,13 @@
             <h1>ArtikIO</h1>
             <p class="subtitle">Онлайн игра в рисование и угадывание слов</p>
 
-            <div class="join-form">
+            <div class="main-menu">
                 <input type="text" id="playerName" placeholder="Введите ваше имя" maxlength="20" autocomplete="off">
-                <input type="text" id="roomId" placeholder="ID комнаты (или оставьте пустым)" maxlength="20" autocomplete="off">
-                <button id="joinBtn">Присоединиться</button>
+
+                <div class="menu-buttons">
+                    <button id="joinLobbyBtn" class="menu-btn">Присоединиться к лобби</button>
+                    <button id="createLobbyBtn" class="menu-btn">Создать лобби</button>
+                </div>
             </div>
 
             <div class="rules">
@@ -25,7 +28,7 @@
                     <li>Остальные игроки пытаются угадать слово</li>
                     <li>Чем быстрее угадаете, тем больше очков получите</li>
                     <li>Рисующий получает очки за каждого угадавшего</li>
-                    <li>Первый, кто наберет 100 очков, побеждает</li>
+                    <li>Первый, кто наберет нужное количество очков, побеждает</li>
                 </ul>
             </div>
         </div>
@@ -33,35 +36,45 @@
 
     <script>
         const playerNameInput = document.getElementById('playerName');
-        const roomIdInput = document.getElementById('roomId');
-        const joinBtn = document.getElementById('joinBtn');
+        const joinLobbyBtn = document.getElementById('joinLobbyBtn');
+        const createLobbyBtn = document.getElementById('createLobbyBtn');
 
-        joinBtn.addEventListener('click', () => {
+        joinLobbyBtn.addEventListener('click', () => {
             const playerName = playerNameInput.value.trim();
-            const roomId = roomIdInput.value.trim() || generateRoomId();
 
             if (!playerName) {
                 alert('Введите ваше имя');
                 return;
             }
 
-            window.location.href = `/game/${roomId}?name=${encodeURIComponent(playerName)}`;
+            // Сохраняем имя в localStorage
+            localStorage.setItem('playerName', playerName);
+            window.location.href = '/lobby_list';
+        });
+
+        createLobbyBtn.addEventListener('click', () => {
+            const playerName = playerNameInput.value.trim();
+
+            if (!playerName) {
+                alert('Введите ваше имя');
+                return;
+            }
+
+            // Сохраняем имя в localStorage
+            localStorage.setItem('playerName', playerName);
+            window.location.href = '/create_lobby';
         });
 
         playerNameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                joinBtn.click();
+                joinLobbyBtn.click();
             }
         });
 
-        roomIdInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                joinBtn.click();
-            }
-        });
-
-        function generateRoomId() {
-            return 'room_' + Math.random().toString(36).substr(2, 9);
+        // Загружаем сохраненное имя
+        const savedName = localStorage.getItem('playerName');
+        if (savedName) {
+            playerNameInput.value = savedName;
         }
     </script>
 </body>

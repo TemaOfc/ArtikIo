@@ -7,15 +7,56 @@ from shared.config import WORD_CHOICE_TIME, ROUND_TIME
 from server.logger import log_info, log_debug, log_warning, log_error
 import threading
 
+@socketio.on('get_lobby_list')
+def handle_get_lobby_list():
+    """Отправить список всех лобби"""
+    lobbies = game_manager.get_all_lobbies()
+    emit('lobby_list', lobbies)
+
+@socketio.on('create_lobby')
+def handle_create_lobby(data):
+    """Создать новое лобби с настройками"""
+    room_id = data['room_id']
+    settings = {
+        'password': data.get('password'),
+        'max_players': data.get('max_players', 8),
+        'round_time': data.get('round_time', 60),
+        'word_choice_time': data.get('word_choice_time', 15),
+        'points_to_win': data.get('points_to_win', 1000),
+        'themes': data.get('themes', ['general'])
+    }
+
+    log_info("Creating lobby with settings", room_id=room_id, settings=settings)
+    room = game_manager.create_room(room_id, settings)
+    emit('lobby_created', {'room_id': room_id})
+
 @socketio.on('join_game')
 def handle_join_game(data):
     room_id = data['room_id']
     player_name = data['player_name']
+    password = data.get('password')
+    create_lobby = data.get('create_lobby', False)
+    lobby_settings = data.get('lobby_settings')
     sid = request.sid
 
-    log_info("Player joining game", room_id=room_id, player_name=player_name, sid=sid)
+    log_info("Player joining game", room_id=room_id, player_name=player_name, sid=sid, create_lobby=create_lobby)
 
-    room = game_manager.create_room(room_id)
+    # Если нужно создать лобби
+    if create_lobby and lobby_settings:
+        room = game_manager.create_room(room_id, lobby_settings)
+        log_info("Lobby created", room_id=room_id, settings=lobby_settings)
+        # Создатель лобби автоматически проходит проверку пароля
+    else:
+        room = game_manager.get_room(room_id)
+        if not room:
+            room = game_manager.create_room(room_id)
+            log_info("Auto-created room with default settings", room_id=room_id)
+        else:
+            # Проверка пароля только если комната уже существует и не создается сейчас
+            if room.password and not room.verify_password(password):
+                log_warning("Wrong password", room_id=room_id, player_name=player_name)
+                emit('error', {'message': 'Неверный пароль'})
+                return
 
     if not room.add_player(sid, player_name):
         log_warning("Room is full", room_id=room_id, player_name=player_name)
@@ -97,7 +138,7 @@ def handle_start_round(data):
     }, room=room_id, skip_sid=word_choice_data['drawer'])
 
     # Запускаем таймер для автовыбора слова
-    socketio.start_background_task(force_word_choice_task, room_id, WORD_CHOICE_TIME)
+    socketio.start_background_task(force_word_choice_task, room_id, room.word_choice_time)
 
 def force_word_choice(room_id):
     room = game_manager.get_room(room_id)
@@ -121,7 +162,7 @@ def force_word_choice(room_id):
         'drawer': room.current_drawer,
         'drawer_name': room.players[room.current_drawer].name,
         'word_hint': get_word_hint(room.current_word),
-        'time_left': ROUND_TIME
+        'time_left': room.round_time
     }, to=room_id, namespace='/')
 
     socketio.emit('reveal_word', {
@@ -129,7 +170,7 @@ def force_word_choice(room_id):
     }, to=room.current_drawer, namespace='/')
 
     # Запускаем таймер раунда
-    socketio.start_background_task(end_round_timer_task, room_id, ROUND_TIME)
+    socketio.start_background_task(end_round_timer_task, room_id, room.round_time)
 
 @socketio.on('word_chosen')
 def handle_word_chosen(data):
@@ -160,7 +201,7 @@ def handle_word_chosen(data):
         'drawer': room.current_drawer,
         'drawer_name': room.players[room.current_drawer].name,
         'word_hint': get_word_hint(room.current_word),
-        'time_left': ROUND_TIME
+        'time_left': room.round_time
     }, room=room_id)
 
     emit('reveal_word', {
@@ -168,7 +209,7 @@ def handle_word_chosen(data):
     }, room=sid)
 
     # Запускаем таймер как фоновую задачу
-    socketio.start_background_task(end_round_timer_task, room_id, ROUND_TIME)
+    socketio.start_background_task(end_round_timer_task, room_id, room.round_time)
 
 @socketio.on('chat_message')
 def handle_chat_message(data):
@@ -398,7 +439,7 @@ def auto_start_next_round(room_id):
     }, to=room_id, namespace='/')
 
     # Запускаем таймер для автовыбора слова
-    socketio.start_background_task(force_word_choice_task, room_id, WORD_CHOICE_TIME)
+    socketio.start_background_task(force_word_choice_task, room_id, room.word_choice_time)
 
 def get_word_hint(word):
     return '_' * len(word)

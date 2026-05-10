@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ArtikIO - Создать лобби</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="lobby create-lobby-page">
+            <h1>Создать лобби</h1>
+            <button id="backBtn" class="back-btn">← Назад</button>
+
+            <div class="create-lobby-content">
+                <div class="settings-section">
+                    <h3>Настройки лобби</h3>
+
+                    <div class="form-group">
+                        <label for="roomId">ID комнаты:</label>
+                        <input type="text" id="roomId" placeholder="Оставьте пустым для автогенерации" maxlength="20" autocomplete="off">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Пароль (необязательно):</label>
+                        <input type="password" id="password" placeholder="Оставьте пустым для открытого лобби" maxlength="20" autocomplete="off">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="maxPlayers">Максимум игроков:</label>
+                        <input type="number" id="maxPlayers" min="2" max="12" value="8">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="roundTime">Время для рисования (сек):</label>
+                        <input type="number" id="roundTime" min="30" max="180" value="60">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="wordChoiceTime">Время для выбора слова (сек):</label>
+                        <input type="number" id="wordChoiceTime" min="5" max="30" value="15">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pointsToWin">Очков для победы:</label>
+                        <input type="number" id="pointsToWin" min="100" max="5000" step="100" value="1000">
+                    </div>
+                </div>
+
+                <div class="themes-section">
+                    <h3>Выбор тем</h3>
+
+                    <div class="theme-mode-tabs">
+                        <button id="singleThemeTab" class="theme-tab active">Одна тема</button>
+                        <button id="constructorTab" class="theme-tab">Конструктор</button>
+                    </div>
+
+                    <div id="singleThemeMode" class="theme-mode">
+                        <div class="theme-list">
+                            <label class="theme-item">
+                                <input type="radio" name="singleTheme" value="general" checked>
+                                <span>Общее (все темы)</span>
+                            </label>
+                            <label class="theme-item">
+                                <input type="radio" name="singleTheme" value="animals">
+                                <span>Животные</span>
+                            </label>
+                            <label class="theme-item">
+                                <input type="radio" name="singleTheme" value="food">
+                                <span>Еда</span>
+                            </label>
+                            <label class="theme-item">
+                                <input type="radio" name="singleTheme" value="objects">
+                                <span>Предметы</span>
+                            </label>
+                            <label class="theme-item">
+                                <input type="radio" name="singleTheme" value="professions">
+                                <span>Профессии</span>
+                            </label>
+                            <label class="theme-item">
+                                <input type="radio" name="singleTheme" value="transport">
+                                <span>Транспорт</span>
+                            </label>
+                            <label class="theme-item">
+                                <input type="radio" name="singleTheme" value="nature">
+                                <span>Природа</span>
+                            </label>
+                            <label class="theme-item">
+                                <input type="radio" name="singleTheme" value="verbs">
+                                <span>Глаголы</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="constructorMode" class="theme-mode" style="display: none;">
+                        <p class="constructor-hint">Выберите несколько тем для комбинации:</p>
+                        <div class="theme-list">
+                            <label class="theme-item">
+                                <input type="checkbox" name="constructorTheme" value="animals">
+                                <span>Животные</span>
+                            </label>
+                            <label class="theme-item">
+                                <input type="checkbox" name="constructorTheme" value="food">
+                                <span>Еда</span>
+                            </label>
+                            <label class="theme-item">
+                                <input type="checkbox" name="constructorTheme" value="objects">
+                                <span>Предметы</span>
+                            </label>
+                            <label class="theme-item">
+                                <input type="checkbox" name="constructorTheme" value="professions">
+                                <span>Профессии</span>
+                            </label>
+                            <label class="theme-item">
+                                <input type="checkbox" name="constructorTheme" value="transport">
+                                <span>Транспорт</span>
+                            </label>
+                            <label class="theme-item">
+                                <input type="checkbox" name="constructorTheme" value="nature">
+                                <span>Природа</span>
+                            </label>
+                            <label class="theme-item">
+                                <input type="checkbox" name="constructorTheme" value="verbs">
+                                <span>Глаголы</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="createBtn" class="create-btn">Создать лобби</button>
+        </div>
+    </div>
+
+    <script>
+        const playerName = localStorage.getItem('playerName');
+        if (!playerName) {
+            window.location.href = '/';
+        }
+
+        const singleThemeTab = document.getElementById('singleThemeTab');
+        const constructorTab = document.getElementById('constructorTab');
+        const singleThemeMode = document.getElementById('singleThemeMode');
+        const constructorMode = document.getElementById('constructorMode');
+
+        document.getElementById('backBtn').addEventListener('click', () => {
+            window.location.href = '/';
+        });
+
+        singleThemeTab.addEventListener('click', () => {
+            singleThemeTab.classList.add('active');
+            constructorTab.classList.remove('active');
+            singleThemeMode.style.display = 'block';
+            constructorMode.style.display = 'none';
+        });
+
+        constructorTab.addEventListener('click', () => {
+            constructorTab.classList.add('active');
+            singleThemeTab.classList.remove('active');
+            constructorMode.style.display = 'block';
+            singleThemeMode.style.display = 'none';
+        });
+
+        document.getElementById('createBtn').addEventListener('click', () => {
+            const roomId = document.getElementById('roomId').value.trim() || generateRoomId();
+            const password = document.getElementById('password').value.trim();
+            const maxPlayers = parseInt(document.getElementById('maxPlayers').value);
+            const roundTime = parseInt(document.getElementById('roundTime').value);
+            const wordChoiceTime = parseInt(document.getElementById('wordChoiceTime').value);
+            const pointsToWin = parseInt(document.getElementById('pointsToWin').value);
+
+            let themes = [];
+            if (singleThemeMode.style.display !== 'none') {
+                // Режим одной темы
+                const selectedTheme = document.querySelector('input[name="singleTheme"]:checked').value;
+                themes = [selectedTheme];
+            } else {
+                // Режим конструктора
+                const selectedThemes = Array.from(document.querySelectorAll('input[name="constructorTheme"]:checked'))
+                    .map(cb => cb.value);
+
+                if (selectedThemes.length === 0) {
+                    alert('Выберите хотя бы одну тему');
+                    return;
+                }
+                themes = selectedThemes;
+            }
+
+            // Формируем параметры для создания лобби
+            const lobbySettings = {
+                room_id: roomId,
+                password: password || null,
+                max_players: maxPlayers,
+                round_time: roundTime,
+                word_choice_time: wordChoiceTime,
+                points_to_win: pointsToWin,
+                themes: themes
+            };
+
+            // Сохраняем настройки в localStorage для передачи на сервер
+            localStorage.setItem('lobbySettings', JSON.stringify(lobbySettings));
+
+            // Переходим в игру
+            window.location.href = `/game/${roomId}?name=${encodeURIComponent(playerName)}&create=true`;
+        });
+
+        function generateRoomId() {
+            return 'room_' + Math.random().toString(36).substr(2, 9);
+        }
+    </script>
+</body>
+</html>
