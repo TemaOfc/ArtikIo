@@ -4,6 +4,7 @@ from server.app import socketio
 from server.game_logic import game_manager
 from server.word_checker import check_guess
 from shared.config import WORD_CHOICE_TIME, ROUND_TIME
+from server.logger import log_info, log_debug, log_warning, log_error
 import threading
 
 @socketio.on('join_game')
@@ -12,13 +13,17 @@ def handle_join_game(data):
     player_name = data['player_name']
     sid = request.sid
 
+    log_info("Player joining game", room_id=room_id, player_name=player_name, sid=sid)
+
     room = game_manager.create_room(room_id)
 
     if not room.add_player(sid, player_name):
+        log_warning("Room is full", room_id=room_id, player_name=player_name)
         emit('error', {'message': 'Комната полна'})
         return
 
     join_room(room_id)
+    log_info("Player joined successfully", room_id=room_id, player_name=player_name)
 
     emit('player_joined', {
         'player_name': player_name,
@@ -26,6 +31,7 @@ def handle_join_game(data):
     }, room=room_id)
 
     if room.round_active:
+        log_debug("Syncing active round state to new player", room_id=room_id, sid=sid)
         emit('sync_game_state', {
             'round_active': True,
             'drawer': room.current_drawer,
@@ -36,6 +42,7 @@ def handle_join_game(data):
             'scoreboard': room.get_scoreboard()
         })
     elif room.choosing_word and room.current_drawer == sid:
+        log_debug("Sending word choice to reconnected drawer", room_id=room_id, sid=sid)
         emit('choose_word', {
             'choices': room.word_choices
         })
@@ -44,10 +51,14 @@ def handle_join_game(data):
 def handle_disconnect():
     sid = request.sid
 
+    log_debug("Player disconnecting", sid=sid)
+
     for room_id, room in list(game_manager.rooms.items()):
         if sid in room.players:
             player_name = room.players[sid].name
             room.remove_player(sid)
+
+            log_info("Player left room", room_id=room_id, player_name=player_name, sid=sid)
 
             emit('player_left', {
                 'player_name': player_name,
@@ -55,6 +66,7 @@ def handle_disconnect():
             }, room=room_id)
 
             if len(room.players) == 0:
+                log_info("Room is empty, deleting", room_id=room_id)
                 game_manager.delete_room(room_id)
 
             break
@@ -92,18 +104,18 @@ def force_word_choice(room_id):
 
     # Проверяем, что комната существует и все еще в режиме выбора слова
     if not room:
-        print(f"[DEBUG] force_word_choice: комната {room_id} не найдена")
+        log_warning("force_word_choice: room not found", room_id=room_id)
         return
 
     if not room.choosing_word:
-        print(f"[DEBUG] force_word_choice: игрок уже выбрал слово, пропускаем автовыбор")
+        log_debug("force_word_choice: player already chose word, skipping auto-choice", room_id=room_id)
         return
 
     import random
     word = random.choice(room.word_choices)
     room.choose_word(word)
 
-    print(f"[DEBUG] force_word_choice: автоматически выбрано слово '{word}' для комнаты {room_id}")
+    log_info("force_word_choice: auto-selected word", room_id=room_id, word=word)
 
     socketio.emit('round_start', {
         'drawer': room.current_drawer,
@@ -125,20 +137,24 @@ def handle_word_chosen(data):
     word = data['word']
     sid = request.sid
 
+    log_debug("Player choosing word", room_id=room_id, word=word, sid=sid)
+
     room = game_manager.get_room(room_id)
 
     if not room or room.current_drawer != sid:
+        log_warning("Invalid word choice attempt", room_id=room_id, sid=sid, is_drawer=(room.current_drawer == sid if room else False))
         return
 
     # Проверяем, что игрок все еще выбирает слово
     if not room.choosing_word:
-        print(f"[DEBUG] Игрок пытается выбрать слово, но choosing_word=False")
+        log_warning("Player trying to choose word but choosing_word=False", room_id=room_id, sid=sid)
         return
 
     if not room.choose_word(word):
+        log_error("Failed to choose word", room_id=room_id, word=word, sid=sid)
         return
 
-    print(f"[DEBUG] Игрок выбрал слово '{word}', начинаем раунд в комнате {room_id}")
+    log_info("Player chose word, starting round", room_id=room_id, word=word, sid=sid)
 
     emit('round_start', {
         'drawer': room.current_drawer,
@@ -189,13 +205,14 @@ def handle_chat_message(data):
 
             winner = room.check_winner()
             if winner:
+                log_info("Game over - winner found", room_id=room_id, winner=winner.name, score=winner.score)
                 emit('game_over', {
                     'winner_name': winner.name,
                     'scoreboard': room.get_scoreboard()
                 }, room=room_id)
                 room.end_round()
             elif guess_result['all_guessed']:
-                print(f"[DEBUG] Все игроки угадали слово в комнате {room_id}")
+                log_info("All players guessed the word", room_id=room_id, word=room.current_word)
                 emit('round_end', {
                     'word': room.current_word,
                     'reason': 'all_guessed',
@@ -204,7 +221,7 @@ def handle_chat_message(data):
                 room.end_round()
 
                 # Автоматически начать следующий раунд через 3 секунды
-                print(f"[DEBUG] Запускаем таймер для автостарта после угадывания всеми")
+                log_debug("Starting timer for next round after all guessed", room_id=room_id)
                 socketio.start_background_task(auto_start_next_round_task, room_id, 3)
 
     elif result == "close":
@@ -297,7 +314,7 @@ def end_round_timer_task(room_id, delay):
 
         # Проверяем, что раунд все еще активен
         if not room or not room.round_active:
-            print(f"[DEBUG] end_round_timer_task: раунд уже завершен, останавливаем таймер")
+            log_debug("end_round_timer_task: round already ended, stopping timer", room_id=room_id)
             return
 
         socketio.emit('time_update', {
@@ -316,16 +333,16 @@ def auto_start_next_round_task(room_id, delay):
 
 def force_word_choice_task(room_id, delay):
     """Фоновая задача для автовыбора слова"""
-    print(f"[DEBUG] force_word_choice_task: ждем {delay} секунд для комнаты {room_id}")
+    log_debug("force_word_choice_task: waiting", room_id=room_id, delay=delay)
     socketio.sleep(delay)
-    print(f"[DEBUG] force_word_choice_task: задержка завершена, вызываем force_word_choice")
+    log_debug("force_word_choice_task: delay completed, calling force_word_choice", room_id=room_id)
     force_word_choice(room_id)
 
 def end_round_timer(room_id):
     room = game_manager.get_room(room_id)
 
     if room and room.round_active:
-        print(f"[DEBUG] Таймер истек для комнаты {room_id}, завершаем раунд")
+        log_info("Round timer expired, ending round", room_id=room_id, word=room.current_word)
         socketio.emit('round_end', {
             'word': room.current_word,
             'reason': 'time_up',
@@ -335,40 +352,40 @@ def end_round_timer(room_id):
         room.end_round()
 
         # Автоматически начать следующий раунд через 3 секунды
-        print(f"[DEBUG] Запускаем таймер для автостарта следующего раунда")
+        log_debug("Starting timer for next round auto-start", room_id=room_id)
         socketio.start_background_task(auto_start_next_round_task, room_id, 3)
 
 def auto_start_next_round(room_id):
     room = game_manager.get_room(room_id)
 
-    print(f"[DEBUG] auto_start_next_round вызван для комнаты {room_id}")
+    log_debug("auto_start_next_round called", room_id=room_id)
 
     if not room:
-        print(f"[DEBUG] Комната {room_id} не найдена")
+        log_warning("auto_start_next_round: room not found", room_id=room_id)
         return
 
     if len(room.players) < 2:
-        print(f"[DEBUG] Недостаточно игроков в комнате {room_id}")
+        log_warning("auto_start_next_round: not enough players", room_id=room_id, player_count=len(room.players))
         return
 
     if room.round_active or room.choosing_word:
-        print(f"[DEBUG] Раунд уже активен или идет выбор слова")
+        log_debug("auto_start_next_round: round already active or choosing word", room_id=room_id)
         return
 
     word_choice_data = room.start_word_choice()
 
     if not word_choice_data:
-        print(f"[DEBUG] Не удалось начать выбор слова")
+        log_error("auto_start_next_round: failed to start word choice", room_id=room_id)
         return
 
     drawer_sid = word_choice_data['drawer']
 
     # Проверяем, что игрок все еще в комнате
     if drawer_sid not in room.players:
-        print(f"[DEBUG] Рисующий игрок отключился, пропускаем")
+        log_warning("auto_start_next_round: drawer disconnected, skipping", room_id=room_id, drawer_sid=drawer_sid)
         return
 
-    print(f"[DEBUG] Отправляем выбор слова игроку {word_choice_data['drawer_name']} (sid: {drawer_sid})")
+    log_info("Sending word choice to drawer", room_id=room_id, drawer_name=word_choice_data['drawer_name'], drawer_sid=drawer_sid)
 
     # Отправляем всем в комнате, клиент сам решит показывать ли модалку
     socketio.emit('choose_word', {

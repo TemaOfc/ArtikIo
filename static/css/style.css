@@ -153,6 +153,10 @@ body {
     min-height: 0;
 }
 
+.bottom-section {
+    display: contents; /* На десктопе не создает контейнер, элементы ведут себя как прямые дети game-content */
+}
+
 .left-panel {
     width: 200px;
     display: flex;
@@ -603,8 +607,10 @@ body {
 @media screen and (max-width: 768px) {
     .game-container {
         height: 100vh;
+        height: 100dvh; /* Динамическая высота viewport для мобильных */
         display: flex;
         flex-direction: column;
+        overflow: hidden;
     }
 
     .game-header {
@@ -621,32 +627,79 @@ body {
         padding: 5px;
         gap: 5px;
         overflow: hidden;
+        min-height: 0;
     }
 
-    /* Верхняя часть: холст слева, чат справа */
-    .center-panel {
+    /* Холст сверху на всю ширину, треть высоты */
+    .canvas-container {
+        width: 100%;
+        height: 33%;
         flex-shrink: 0;
         order: 1;
-        display: flex;
-        flex-direction: row;
-        gap: 5px;
-        height: 350px;
-    }
-
-    .canvas-container {
-        padding: 3px;
-        width: 50%;
-        flex-shrink: 0;
+        padding: 5px;
         display: flex;
         align-items: center;
         justify-content: center;
         background: white;
         border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
 
-    .right-panel {
-        width: 50%;
+    .center-panel {
+        order: 1;
+        display: contents;
+    }
+
+    /* Панель инструментов под холстом */
+    .toolbar {
+        order: 2;
+        padding: 4px;
+        gap: 3px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
         flex-shrink: 0;
+        height: 45px;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Контейнер для нижней части: игроки + чат */
+    .bottom-section {
+        order: 3;
+        flex: 1;
+        display: flex;
+        flex-direction: row;
+        gap: 5px;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    /* Игроки слева (1/3) */
+    .left-panel {
+        width: 33.333%;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    /* Чат справа (2/3) */
+    .right-panel {
+        width: 66.666%;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .scoreboard {
+        padding: 5px;
+        margin: 0;
+        border-radius: 8px;
+        background: white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        height: 100%;
+        overflow-y: auto;
         display: flex;
         flex-direction: column;
     }
@@ -659,29 +712,6 @@ body {
         border-radius: 8px;
         background: white;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Панель инструментов */
-    .toolbar {
-        padding: 4px;
-        gap: 3px;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        flex-shrink: 0;
-        height: 45px;
-        display: flex;
-        align-items: center;
-        order: 2;
-    }
-
-    /* Игроки снизу */
-    .left-panel {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        order: 3;
-        flex: 1;
-        min-height: 0;
     }
 
     .room-info {
@@ -1064,5 +1094,75 @@ body {
 
     .subtitle {
         font-size: 14px;
+    }
+
+    /* Keyboard open state - compact layout */
+    body.keyboard-open .game-content {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    body.keyboard-open .left-panel {
+        order: 1;
+        width: 33.333%;
+        height: calc(55vh - 45px);
+        flex-shrink: 0;
+    }
+
+    body.keyboard-open .scoreboard {
+        height: 100%;
+    }
+
+    body.keyboard-open .center-panel {
+        order: 2;
+        width: 66.666%;
+        flex: none;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    body.keyboard-open .canvas-container {
+        height: calc(55vh - 90px);
+        width: 100%;
+        flex-shrink: 0;
+    }
+
+    body.keyboard-open .toolbar {
+        order: 2;
+        width: 100%;
+        height: 40px;
+        flex-shrink: 0;
+    }
+
+    body.keyboard-open .bottom-section {
+        order: 3;
+        width: 100%;
+        flex: none;
+        display: block;
+    }
+
+    body.keyboard-open .right-panel {
+        width: 100%;
+        height: auto;
+        flex: none;
+    }
+
+    body.keyboard-open .chat-container {
+        height: auto;
+        padding: 3px;
+    }
+
+    body.keyboard-open .chat-messages {
+        display: none;
+    }
+
+    body.keyboard-open .chat-container h3 {
+        display: none;
+    }
+
+    body.keyboard-open .chat-input {
+        margin-bottom: 5px;
     }
 }

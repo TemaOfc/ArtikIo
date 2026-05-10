@@ -180,6 +180,29 @@ let gameSocket;
 let timerInterval;
 let choiceTimerInterval;
 
+// Отслеживание клавиатуры на мобильных устройствах
+let initialViewportHeight = window.innerHeight;
+
+function handleViewportResize() {
+    const currentHeight = window.innerHeight;
+    const heightDiff = initialViewportHeight - currentHeight;
+
+    // Если высота уменьшилась более чем на 150px, считаем что клавиатура открыта
+    if (heightDiff > 150 && window.innerWidth <= 768) {
+        document.body.classList.add('keyboard-open');
+    } else {
+        document.body.classList.remove('keyboard-open');
+    }
+}
+
+window.addEventListener('resize', handleViewportResize);
+window.addEventListener('orientationchange', () => {
+    setTimeout(() => {
+        initialViewportHeight = window.innerHeight;
+        handleViewportResize();
+    }, 100);
+});
+
 function showToast(message, type = 'info', duration = 2000) {
     const toast = document.getElementById('toastNotification');
     toast.textContent = message;

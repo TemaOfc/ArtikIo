@@ -2,6 +2,7 @@ import time
 import random
 from shared.config import *
 from shared.words import get_random_word_pair
+from server.logger import log_info, log_debug, log_warning, log_error
 
 class Player:
     def __init__(self, sid, name):
@@ -45,8 +46,12 @@ class GameRoom:
 
         player_list = list(self.players.keys())
 
-        print(f"[DEBUG] get_next_drawer: player_list = {[self.players[p].name for p in player_list]}")
-        print(f"[DEBUG] get_next_drawer: current_drawer = {self.players[self.current_drawer].name if self.current_drawer else None}")
+        log_debug("get_next_drawer: player_list",
+                  room_id=self.room_id,
+                  players=[self.players[p].name for p in player_list])
+        log_debug("get_next_drawer: current_drawer",
+                  room_id=self.room_id,
+                  current_drawer=self.players[self.current_drawer].name if self.current_drawer else None)
 
         if self.current_drawer is None:
             return player_list[0]
@@ -55,16 +60,22 @@ class GameRoom:
             current_index = player_list.index(self.current_drawer)
             next_index = (current_index + 1) % len(player_list)
             next_drawer = player_list[next_index]
-            print(f"[DEBUG] get_next_drawer: next_drawer = {self.players[next_drawer].name}")
+            log_debug("get_next_drawer: next_drawer",
+                      room_id=self.room_id,
+                      next_drawer=self.players[next_drawer].name)
             return next_drawer
         except ValueError:
             return player_list[0]
 
     def start_word_choice(self):
         old_drawer = self.current_drawer
-        print(f"[DEBUG] start_word_choice: current_drawer before = {self.players[old_drawer].name if old_drawer and old_drawer in self.players else None}")
+        log_debug("start_word_choice: current_drawer before",
+                  room_id=self.room_id,
+                  current_drawer=self.players[old_drawer].name if old_drawer and old_drawer in self.players else None)
         self.current_drawer = self.get_next_drawer()
-        print(f"[DEBUG] start_word_choice: current_drawer after = {self.players[self.current_drawer].name if self.current_drawer else None}")
+        log_debug("start_word_choice: current_drawer after",
+                  room_id=self.room_id,
+                  current_drawer=self.players[self.current_drawer].name if self.current_drawer else None)
         if not self.current_drawer:
             return None
 
