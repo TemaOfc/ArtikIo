@@ -31,6 +31,5 @@ def game(room_id):
     return render_template('game.html', room_id=room_id)
 
 def run_server(host='127.0.0.1', port=5000, debug=False):
-    if not debug:
-        threading.Timer(1.5, open_browser).start()
+    # Автоматическое открытие браузера отключено
     socketio.run(app, host=host, port=port, debug=debug, allow_unsafe_werkzeug=True)

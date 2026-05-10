@@ -33,10 +33,23 @@ def check_guess(guess, target):
     guess = ' '.join(guess.strip().lower().split())
     target = ' '.join(target.strip().lower().split())
 
+    # Проверка полного совпадения
     if guess == target:
-        return "correct"
+        return {"result": "correct"}
 
+    # Проверка частичного совпадения (для многословных фраз)
+    target_parts = target.split()
+    if len(target_parts) > 1:
+        # Проверяем, является ли guess одной из частей target
+        for part in target_parts:
+            if guess == part:
+                return {"result": "partial", "word": part}
+            # Проверяем близкое совпадение с частью
+            if is_close_word(guess, part):
+                return {"result": "partial_close", "word": part}
+
+    # Проверка близкого совпадения для полного слова
     if is_close_word(guess, target):
-        return "close"
+        return {"result": "close"}
 
-    return "wrong"
+    return {"result": "wrong"}
