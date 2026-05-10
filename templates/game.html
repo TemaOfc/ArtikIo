@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ArtikIO - Игра</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <div class="room-info">
+                <span>Комната: <strong id="roomId"></strong></span>
+                <span id="currentDrawer"></span>
+                <span id="timer" class="timer">80</span>
+            </div>
+            <div class="word-display" id="wordDisplay"></div>
+        </div>
+
+        <div class="game-content">
+            <div class="left-panel">
+                <div class="scoreboard">
+                    <h3>Игроки</h3>
+                    <div id="scoreboardList"></div>
+                </div>
+            </div>
+
+            <div class="center-panel">
+                <div class="canvas-container">
+                    <canvas id="gameCanvas" width="2400" height="1600"></canvas>
+                </div>
+                <div class="toolbar" id="toolbar">
+                    <button class="tool-btn active" data-tool="brush" title="Кисть">🖌️</button>
+                    <button class="tool-btn" data-tool="eraser" title="Ластик">🧹</button>
+                    <button class="tool-btn" data-tool="fill" title="Заливка">🪣</button>
+                    <button class="tool-btn" data-tool="line" title="Линия">📏</button>
+                    <button class="tool-btn" data-tool="rect" title="Прямоугольник">⬜</button>
+                    <button class="tool-btn" data-tool="circle" title="Круг">⭕</button>
+
+                    <div class="separator"></div>
+
+                    <div class="size-control">
+                        <label>Размер:</label>
+                        <input type="range" id="brushSize" min="1" max="50" value="5">
+                        <span id="sizeValue">5</span>
+                    </div>
+
+                    <div class="separator"></div>
+
+                    <div class="color-palette">
+                        <div class="color-swatch active" data-color="#000000" style="background: #000000;"></div>
+                        <div class="color-swatch" data-color="#FFFFFF" style="background: #FFFFFF; border: 1px solid #ccc;"></div>
+                        <div class="color-swatch" data-color="#FF0000" style="background: #FF0000;"></div>
+                        <div class="color-swatch" data-color="#00FF00" style="background: #00FF00;"></div>
+                        <div class="color-swatch" data-color="#0000FF" style="background: #0000FF;"></div>
+                        <div class="color-swatch" data-color="#FFFF00" style="background: #FFFF00;"></div>
+                        <div class="color-swatch" data-color="#FF00FF" style="background: #FF00FF;"></div>
+                        <div class="color-swatch" data-color="#00FFFF" style="background: #00FFFF;"></div>
+                        <div class="color-swatch" data-color="#FFA500" style="background: #FFA500;"></div>
+                        <div class="color-swatch" data-color="#800080" style="background: #800080;"></div>
+                        <div class="color-swatch" data-color="#A52A2A" style="background: #A52A2A;"></div>
+                        <div class="color-swatch" data-color="#808080" style="background: #808080;"></div>
+                        <input type="color" id="colorPicker" value="#000000">
+                    </div>
+
+                    <div class="separator"></div>
+
+                    <button class="tool-btn" id="clearBtn" title="Очистить">🗑️</button>
+                    <button class="tool-btn" id="undoBtn" title="Отменить">↶</button>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="chat-container">
+                    <h3>Чат</h3>
+                    <div id="chatMessages" class="chat-messages"></div>
+                    <div class="chat-input">
+                        <input type="text" id="chatInput" placeholder="Введите ваш ответ..." autocomplete="off">
+                        <button id="sendBtn">Отправить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-controls">
+            <button id="startRoundBtn" class="start-btn">Начать раунд</button>
+        </div>
+    </div>
+
+    <div id="wordChoiceModal" class="modal">
+        <div class="modal-content">
+            <h2>Выберите слово для рисования</h2>
+            <div id="wordChoices" class="word-choices"></div>
+            <div class="choice-timer">Осталось: <span id="choiceTimer">15</span> сек</div>
+        </div>
+    </div>
+
+    <div id="gameOverModal" class="modal">
+        <div class="modal-content">
+            <h2>Игра окончена!</h2>
+            <p class="winner-text">Победитель: <strong id="winnerName"></strong></p>
+            <div id="finalScoreboard" class="final-scoreboard"></div>
+            <button id="newGameBtn" class="start-btn">Новая игра</button>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast-notification"></div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/static/js/canvas.js"></script>
+    <script src="/static/js/chat.js"></script>
+    <script src="/static/js/game.js"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+[DEBUG] start_word_choice: current_drawer before = None
+[DEBUG] get_next_drawer: player_list = ['123', 'Гааг']
+[DEBUG] get_next_drawer: current_drawer = None
+[DEBUG] start_word_choice: current_drawer after = 123
+[DEBUG] force_word_choice_task: ждем 15 секунд для комнаты 123
+[DEBUG] Игрок выбрал слово 'каталка', начинаем раунд в комнате 123
+[DEBUG] force_word_choice_task: задержка завершена, вызываем force_word_choice
+[DEBUG] force_word_choice: игрок уже выбрал слово, пропускаем автовыбор
+[DEBUG] Таймер истек для комнаты 123, завершаем раунд
+[DEBUG] Запускаем таймер для автостарта следующего раунда
+[DEBUG] auto_start_next_round вызван для комнаты 123
+[DEBUG] start_word_choice: current_drawer before = 123
+[DEBUG] get_next_drawer: player_list = ['123', 'Гааг']
+[DEBUG] get_next_drawer: current_drawer = 123
+[DEBUG] get_next_drawer: next_drawer = Гааг
+[DEBUG] start_word_choice: current_drawer after = Гааг
+[DEBUG] Отправляем выбор слова игроку Гааг (sid: YIWRW6BibUsuqmXAAAAD)
+[DEBUG] force_word_choice_task: ждем 15 секунд для комнаты 123
+[DEBUG] Игрок выбрал слово 'степь', начинаем раунд в комнате 123
+[DEBUG] force_word_choice_task: задержка завершена, вызываем force_word_choice
+[DEBUG] force_word_choice: игрок уже выбрал слово, пропускаем автовыбор
+[DEBUG] Все игроки угадали слово в комнате 123
+[DEBUG] Запускаем таймер для автостарта после угадывания всеми
+[DEBUG] auto_start_next_round вызван для комнаты 123
+[DEBUG] start_word_choice: current_drawer before = Гааг
+[DEBUG] get_next_drawer: player_list = ['123', 'Гааг']
+[DEBUG] get_next_drawer: current_drawer = Гааг
+[DEBUG] get_next_drawer: next_drawer = 123
+[DEBUG] start_word_choice: current_drawer after = 123
+[DEBUG] Отправляем выбор слова игроку 123 (sid: jIV347zqtsACnIB0AAAB)
+[DEBUG] force_word_choice_task: ждем 15 секунд для комнаты 123
+[DEBUG] Игрок выбрал слово 'устрица', начинаем раунд в комнате 123
+[DEBUG] force_word_choice_task: задержка завершена, вызываем force_word_choice
+[DEBUG] force_word_choice: игрок уже выбрал слово, пропускаем автовыбор
+[DEBUG] Таймер истек для комнаты 123, завершаем раунд
+[DEBUG] Запускаем таймер для автостарта следующего раунда
+[DEBUG] auto_start_next_round вызван для комнаты 123
+[DEBUG] start_word_choice: current_drawer before = 123
+[DEBUG] get_next_drawer: player_list = ['123', 'Гааг']
+[DEBUG] get_next_drawer: current_drawer = 123
+[DEBUG] get_next_drawer: next_drawer = Гааг
+[DEBUG] start_word_choice: current_drawer after = Гааг
+[DEBUG] Отправляем выбор слова игроку Гааг (sid: YIWRW6BibUsuqmXAAAAD)
+[DEBUG] force_word_choice_task: ждем 15 секунд для комнаты 123

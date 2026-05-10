@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ArtikIO - Главная</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="lobby">
+            <h1>ArtikIO</h1>
+            <p class="subtitle">Онлайн игра в рисование и угадывание слов</p>
+
+            <div class="join-form">
+                <input type="text" id="playerName" placeholder="Введите ваше имя" maxlength="20" autocomplete="off">
+                <input type="text" id="roomId" placeholder="ID комнаты (или оставьте пустым)" maxlength="20" autocomplete="off">
+                <button id="joinBtn">Присоединиться</button>
+            </div>
+
+            <div class="rules">
+                <h3>Правила игры:</h3>
+                <ul>
+                    <li>Игроки по очереди рисуют выбранное слово</li>
+                    <li>Остальные игроки пытаются угадать слово</li>
+                    <li>Чем быстрее угадаете, тем больше очков получите</li>
+                    <li>Рисующий получает очки за каждого угадавшего</li>
+                    <li>Первый, кто наберет 100 очков, побеждает</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const playerNameInput = document.getElementById('playerName');
+        const roomIdInput = document.getElementById('roomId');
+        const joinBtn = document.getElementById('joinBtn');
+
+        joinBtn.addEventListener('click', () => {
+            const playerName = playerNameInput.value.trim();
+            const roomId = roomIdInput.value.trim() || generateRoomId();
+
+            if (!playerName) {
+                alert('Введите ваше имя');
+                return;
+            }
+
+            window.location.href = `/game/${roomId}?name=${encodeURIComponent(playerName)}`;
+        });
+
+        playerNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                joinBtn.click();
+            }
+        });
+
+        roomIdInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                joinBtn.click();
+            }
+        });
+
+        function generateRoomId() {
+            return 'room_' + Math.random().toString(36).substr(2, 9);
+        }
+    </script>
+</body>
+</html>
