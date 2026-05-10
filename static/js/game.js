@@ -180,27 +180,94 @@ let gameSocket;
 let timerInterval;
 let choiceTimerInterval;
 
-// Отслеживание клавиатуры на мобильных устройствах
+// Отслеживание клавиатуры на мобильных устройствах с visualViewport API
 let initialViewportHeight = window.innerHeight;
 
 function handleViewportResize() {
-    const currentHeight = window.innerHeight;
-    const heightDiff = initialViewportHeight - currentHeight;
+    // Используем visualViewport API если доступен
+    const visualViewport = window.visualViewport;
 
-    // Если высота уменьшилась более чем на 150px, считаем что клавиатура открыта
-    if (heightDiff > 150 && window.innerWidth <= 768) {
-        document.body.classList.add('keyboard-open');
+    if (visualViewport) {
+        const currentHeight = visualViewport.height;
+        const heightDiff = initialViewportHeight - currentHeight;
+
+        console.log('[VIEWPORT] Initial height:', initialViewportHeight);
+        console.log('[VIEWPORT] Visual viewport height:', currentHeight);
+        console.log('[VIEWPORT] Height diff:', heightDiff);
+        console.log('[VIEWPORT] Window width:', window.innerWidth);
+        console.log('[VIEWPORT] Visual viewport scale:', visualViewport.scale);
+
+        // Если высота уменьшилась более чем на 150px, считаем что клавиатура открыта
+        if (heightDiff > 150 && window.innerWidth <= 768) {
+            console.log('[VIEWPORT] Keyboard OPEN - adding class');
+            document.body.classList.add('keyboard-open');
+
+            // Устанавливаем CSS переменную с высотой viewport
+            document.documentElement.style.setProperty('--viewport-height', `${currentHeight}px`);
+        } else {
+            console.log('[VIEWPORT] Keyboard CLOSED - removing class');
+            document.body.classList.remove('keyboard-open');
+            document.documentElement.style.setProperty('--viewport-height', `${initialViewportHeight}px`);
+        }
     } else {
-        document.body.classList.remove('keyboard-open');
+        // Fallback для старых браузеров
+        const currentHeight = window.innerHeight;
+        const heightDiff = initialViewportHeight - currentHeight;
+
+        console.log('[VIEWPORT] Fallback - Initial height:', initialViewportHeight);
+        console.log('[VIEWPORT] Fallback - Current height:', currentHeight);
+        console.log('[VIEWPORT] Fallback - Height diff:', heightDiff);
+
+        if (heightDiff > 150 && window.innerWidth <= 768) {
+            document.body.classList.add('keyboard-open');
+            document.documentElement.style.setProperty('--viewport-height', `${currentHeight}px`);
+        } else {
+            document.body.classList.remove('keyboard-open');
+            document.documentElement.style.setProperty('--viewport-height', `${initialViewportHeight}px`);
+        }
     }
+}
+
+// Слушаем изменения visualViewport
+if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', handleViewportResize);
+    window.visualViewport.addEventListener('scroll', handleViewportResize);
 }
 
 window.addEventListener('resize', handleViewportResize);
 window.addEventListener('orientationchange', () => {
+    console.log('[VIEWPORT] Orientation changed');
     setTimeout(() => {
         initialViewportHeight = window.innerHeight;
         handleViewportResize();
     }, 100);
+});
+
+// Логируем при фокусе на input
+document.addEventListener('DOMContentLoaded', () => {
+    const chatInput = document.getElementById('chatInput');
+    if (chatInput) {
+        chatInput.addEventListener('focus', () => {
+            console.log('[INPUT] Chat input focused');
+            setTimeout(() => {
+                console.log('[INPUT] After focus - viewport height:', window.innerHeight);
+                if (window.visualViewport) {
+                    console.log('[INPUT] After focus - visual viewport height:', window.visualViewport.height);
+                }
+                handleViewportResize();
+            }, 300);
+        });
+        chatInput.addEventListener('blur', () => {
+            console.log('[INPUT] Chat input blurred');
+            setTimeout(() => {
+                console.log('[INPUT] After blur - viewport height:', window.innerHeight);
+                if (window.visualViewport) {
+                    console.log('[INPUT] After blur - visual viewport height:', window.visualViewport.height);
+                }
+                handleViewportResize();
+            }, 300);
+        });
+    }
 });
 
 function showToast(message, type = 'info', duration = 2000) {
@@ -237,6 +304,9 @@ function init() {
 
     setupToolbar();
     setupGameControls();
+
+    // Скрываем панель инструментов при загрузке
+    document.getElementById('toolbar').classList.add('hidden');
 }
 
 function setupToolbar() {
@@ -354,15 +424,22 @@ function startRound(data) {
     clearInterval(choiceTimerInterval);
 
     drawingCanvas.clearCanvas();
-    drawingCanvas.setEnabled(false);
+
+    // Проверяем, является ли текущий игрок рисующим
+    const isDrawer = (data.drawer === gameSocket.socket.id);
+
+    if (isDrawer) {
+        drawingCanvas.setEnabled(true);
+        document.getElementById('toolbar').classList.remove('hidden');
+    } else {
+        drawingCanvas.setEnabled(false);
+        document.getElementById('toolbar').classList.add('hidden');
+    }
 
     document.getElementById('currentDrawer').textContent = `Рисует: ${data.drawer_name}`;
     document.getElementById('wordDisplay').textContent = data.word_hint;
 
     document.getElementById('startRoundBtn').style.display = 'none';
-
-    const toolbar = document.getElementById('toolbar');
-    toolbar.querySelectorAll('button, input').forEach(el => el.disabled = true);
 
     startTimer(data.time_left);
 }
@@ -372,6 +449,7 @@ function revealWord(word) {
     drawingCanvas.setEnabled(true);
 
     const toolbar = document.getElementById('toolbar');
+    toolbar.classList.remove('hidden');
     toolbar.querySelectorAll('button, input').forEach(el => el.disabled = false);
 
     chatManager.addSystemMessage(`Ваше слово: ${word}`);
@@ -405,6 +483,7 @@ function endRound(data) {
     drawingCanvas.setEnabled(false);
 
     const toolbar = document.getElementById('toolbar');
+    toolbar.classList.add('hidden');
     toolbar.querySelectorAll('button, input').forEach(el => el.disabled = true);
 
     if (data.reason === 'time_up') {
@@ -461,8 +540,22 @@ function syncGameState(data) {
             drawingCanvas.applyAction(action);
         });
 
+        // Проверяем, является ли текущий игрок рисующим
+        const isDrawer = (data.drawer === gameSocket.socket.id);
+
+        if (isDrawer) {
+            drawingCanvas.setEnabled(true);
+            document.getElementById('toolbar').classList.remove('hidden');
+        } else {
+            drawingCanvas.setEnabled(false);
+            document.getElementById('toolbar').classList.add('hidden');
+        }
+
         startTimer(data.time_left);
         updateScoreboard(data.scoreboard);
+    } else {
+        // Раунд не активен - скрываем панель инструментов
+        document.getElementById('toolbar').classList.add('hidden');
     }
 }
 

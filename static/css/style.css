@@ -268,6 +268,10 @@ body {
     overflow-x: auto;
 }
 
+.toolbar.hidden {
+    display: none;
+}
+
 .tool-btn {
     width: 45px;
     height: 45px;
@@ -605,9 +609,17 @@ body {
 
 /* Mobile Responsive Styles */
 @media screen and (max-width: 768px) {
+    :root {
+        --viewport-height: 100vh;
+    }
+
     .game-container {
-        height: 100vh;
-        height: 100dvh; /* Динамическая высота viewport для мобильных */
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: var(--viewport-height);
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -1098,71 +1110,131 @@ body {
 
     /* Keyboard open state - compact layout */
     body.keyboard-open .game-content {
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-items: flex-start;
-    }
-
-    body.keyboard-open .left-panel {
-        order: 1;
-        width: 33.333%;
-        height: calc(55vh - 45px);
-        flex-shrink: 0;
-    }
-
-    body.keyboard-open .scoreboard {
+        flex-direction: column;
         height: 100%;
+        gap: 3px;
+        overflow: hidden;
     }
 
     body.keyboard-open .center-panel {
-        order: 2;
-        width: 66.666%;
-        flex: none;
+        order: 1;
+        width: 100%;
+        height: auto;
+        flex: 0 0 auto;
         display: flex;
         flex-direction: column;
         gap: 3px;
+        max-height: 45%;
     }
 
     body.keyboard-open .canvas-container {
-        height: calc(55vh - 90px);
         width: 100%;
+        height: 25vh;
+        max-height: 200px;
         flex-shrink: 0;
     }
 
     body.keyboard-open .toolbar {
-        order: 2;
-        width: 100%;
-        height: 40px;
+        height: 35px;
         flex-shrink: 0;
+        padding: 3px;
+        gap: 3px;
+    }
+
+    body.keyboard-open .toolbar.hidden {
+        display: none;
+        height: 0;
     }
 
     body.keyboard-open .bottom-section {
-        order: 3;
+        order: 2;
         width: 100%;
-        flex: none;
-        display: block;
+        flex: 1;
+        display: flex;
+        flex-direction: row;
+        gap: 3px;
+        min-height: 100px;
+        overflow: hidden;
     }
 
     body.keyboard-open .right-panel {
-        width: 100%;
-        height: auto;
-        flex: none;
+        order: 1;
+        width: 50%;
+        height: 100%;
+        flex-shrink: 0;
+        min-height: 0;
     }
 
-    body.keyboard-open .chat-container {
-        height: auto;
+    body.keyboard-open .left-panel {
+        order: 2;
+        width: 50%;
+        height: 100%;
+        flex-shrink: 0;
+        min-height: 0;
+    }
+
+    body.keyboard-open .scoreboard {
+        height: 100%;
+        overflow-y: auto;
         padding: 3px;
     }
 
+    body.keyboard-open .scoreboard h3 {
+        font-size: 10px;
+        margin-bottom: 3px;
+    }
+
+    body.keyboard-open .chat-container {
+        height: 100%;
+        padding: 3px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-height: 0;
+    }
+
     body.keyboard-open .chat-messages {
-        display: none;
+        display: flex;
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 2px;
+        min-height: 0;
     }
 
     body.keyboard-open .chat-container h3 {
-        display: none;
+        font-size: 10px;
+        margin-bottom: 2px;
+        flex-shrink: 0;
     }
 
     body.keyboard-open .chat-input {
-        margin-bottom: 5px;
+        margin: 0;
+        padding: 0;
+        gap: 3px;
+        flex-shrink: 0;
+    }
+
+    body.keyboard-open .chat-input input {
+        flex: 1;
+        height: 30px;
+        padding: 5px 8px;
+        font-size: 14px;
+    }
+
+    body.keyboard-open .chat-input button {
+        flex-shrink: 0;
+        height: 30px;
+        padding: 5px 12px;
+        font-size: 12px;
+    }
+
+    body.keyboard-open .chat-message {
+        font-size: 10px;
+        padding: 3px 5px;
+    }
+
+    body.keyboard-open .player-item {
+        font-size: 10px;
+        padding: 3px 5px;
     }
 }
